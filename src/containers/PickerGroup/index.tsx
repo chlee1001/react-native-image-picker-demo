@@ -22,6 +22,9 @@ function PickerGroup() {
           buttonStyle={{
             backgroundColor: 'lightgreen',
           }}
+            buttonClick={() => {
+            navigateScreenTo('ImageCropPicker');
+            }}
         />
         <CommonButton
           buttonTitle="react-native-multiple-image-picker"
