@@ -1,79 +1,101 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# React-Native Image Picker Library Test
 
-# Getting Started
+<div align="center">
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+[//]: # (  <img src="프로젝트 로고 URL" alt="로고 이미지" width="150">)
+  <br>
+  <h3>적합한 라이브러리를 찾기 위한 데모 앱프로젝트</h3>
+</div>
 
-## Step 1: Start the Metro Server
+---
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+## 📑 목차
 
-To start Metro, run the following command from the _root_ of your React Native project:
+- [프로젝트 소개](#프로젝트-소개)
+- [기능](#기능)
+- [설치 방법](#설치-방법)
+- [사용 방법](#사용-방법)
+- [기여 방법](#기여-방법)
 
-```bash
-# using npm
-npm start
+## 📜 프로젝트 소개
 
-# OR using Yarn
-yarn start
-```
+RN 프로젝트에서 이미지 피커로 사용하는 여러가지 라이브러리 중 적합한 것을 찾기 위한 프로젝트
 
-## Step 2: Start your Application
+## ⚙️ 기능
 
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
+- 사진 촬영
+- 사진 선택 및 불러오기
+- 사진 정보 간단 조회
 
-### For Android
 
-```bash
-# using npm
-npm run android
+- [x] react-native-image-picker
+  1. android 와 iOS 모두 동작 확인
+  2. 이미지를 선택하면 base64, uri, type, fileName, fileSize 등의 정보를 제공
+  3. Exif 정보를 제공하지 않음 - (그대로 이미지를 업로드할 때, 포함되어있을 것으로 추측)
+  4. 자체 리사이즈 기능이 있음
+  5. android 버전별로 동작이 다름 (13부터 OS의 사진선택 도구 활용, 그 이하는 미디어 저장소)
 
-# OR using Yarn
-yarn android
-```
+- [x] react-native-image-crop-picker
+  1. android 와 iOS 모두 동작 확인
+  2. 이미지를 선택하면 base64, uri, type, fileName, fileSize 등의 정보를 제공
+  3. 이미지를 선택하면 exif 정보를 제공한다.
+  4. crop 기능을 사용하면 메타데이터가 제대로 나오지 않는다. 대부분 사라진다. (iOS)는 이미지 이름도 사라짐
+  5. (android) 메타데이터 누락이 있음
+  6. (iOS) crop 기능을 사용하면 이미지 사이즈가 줄어든다.
+  7. android 버전별로 동작이 다름 (13부터 OS의 사진선택 도구 활용, 그 이하는 미디어 저장소)
+  8. (iOS) 갤러리 굿
 
-### For iOS
+- [ ] react-native-multiple-image-picker
 
-```bash
-# using npm
-npm run ios
+- [ ] @ko-developerhong/react-native-multiple-image-picker
 
-# OR using Yarn
-yarn ios
-```
+- [ ] @react-native-camera-roll/camera-roll
 
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
+## 🛠 설치 방법
 
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
+1. 프로젝트를 클론하세요:
+   ```sh
+   git clone https://github.com/chlee1001/react-native-image-picker-demo.git
+    ```
 
-## Step 3: Modifying your App
+2. 의존성을 설치하세요:
+   ```sh
+   cd react-native-image-picker-demo
+   yarn install
+   
+   cd ios
+   bundle install
+   pod install
+   ```
 
-Now that you have successfully run the app, let's modify it.
+3. 프로젝트를 실행하세요:
+   ```sh
+    yarn start
+   ```
 
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
+## 📖 사용 방법
 
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
+앱 실행 후 원하는 라이브러리를 선택하여 사용하세요.
 
-## Congratulations! :tada:
+- [react-native-image-picker](https://www.npmjs.com/package/react-native-image-picker)
+- [react-native-image-crop-picker](https://www.npmjs.com/package/react-native-image-crop-picker)
+- [react-native-multiple-image-picker](https://www.npmjs.com/package/@baronha/react-native-multiple-image-picker)
+- [@ko-developerhong/react-native-multiple-image-picker](https://www.npmjs.com/package/@ko-developerhong/react-native-multiple-image-picker)
+- [@react-native-camera-roll/camera-roll](https://www.npmjs.com/package/@react-native-camera-roll/camera-roll)
 
-You've successfully run and modified your React Native App. :partying_face:
+## 🤝 기여 방법
 
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+1. Fork 해주세요! (프로젝트 상단에 있는 'Fork' 버튼을 클릭하세요)
+2. 새 브랜치를 만드세요:
+   ```sh
+   git checkout -b my-new-feature
+    ```
+3. 변경 사항을 커밋하세요:
+   ```sh
+   git commit -am 'Add some feature'
+    ```
+4. 브랜치에 푸시하세요:
+    ```sh
+    git push origin my-new-feature
+     ```
+5. Pull Request를 보내주세요!
