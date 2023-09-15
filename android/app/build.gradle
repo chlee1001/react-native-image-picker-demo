@@ -78,6 +78,7 @@ android {
         applicationId "com.rnimagepickertestproject"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        vectorDrawables.useSupportLibrary = true // react-native-image-crop-picker
         versionCode 1
         versionName "1.0"
     }
