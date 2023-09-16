@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { Alert, ScrollView } from 'react-native';
 import CommonButton from '../../components/CommonButton';
 import { navigateScreenTo } from '../../utils/navigationHelper';
 import CommonSafeAreaView from '../../components/CommonSafeAreaView';
@@ -22,20 +22,18 @@ function PickerGroup() {
           buttonStyle={{
             backgroundColor: 'lightgreen',
           }}
-            buttonClick={() => {
+          buttonClick={() => {
             navigateScreenTo('ImageCropPicker');
-            }}
+          }}
         />
         <CommonButton
           buttonTitle="react-native-multiple-image-picker"
           buttonStyle={{
             backgroundColor: 'lightpink',
           }}
-        />
-        <CommonButton
-          buttonTitle="@ko-developerhong/react-native-multiple-image-picker"
-          buttonStyle={{
-            backgroundColor: 'lightsalmon',
+          buttonClick={() => {
+            Alert.alert('라이브러리가 존재하지 않습니다..');
+            // navigateScreenTo('ImageMultiPicker');
           }}
         />
         <CommonButton

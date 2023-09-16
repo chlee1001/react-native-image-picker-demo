@@ -8,11 +8,13 @@ import PickerGroup from './src/containers/PickerGroup';
 import ImagePicker from './src/containers/ImagePicker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import ImageCropPicker from './src/containers/ImageCropPicker';
+import ImageMultiPicker from './src/containers/ImageMultiPicker';
 
 type RootStackParamList = {
   Home: undefined;
   ImagePicker: undefined;
   ImageCropPicker: undefined;
+  ImageMultiPicker: undefined;
 };
 
 const RootStack = createStackNavigator<RootStackParamList>();
@@ -36,6 +38,11 @@ function App() {
             <RootStack.Screen
               name="ImageCropPicker"
               component={ImageCropPicker}
+              options={{ headerShown: false }}
+            />
+            <RootStack.Screen
+              name="ImageMultiPicker"
+              component={ImageMultiPicker}
               options={{ headerShown: false }}
             />
           </RootStack.Navigator>
