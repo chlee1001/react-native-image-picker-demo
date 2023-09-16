@@ -20,6 +20,12 @@
 ## 📜 프로젝트 소개
 
 RN 프로젝트에서 이미지 피커로 사용하는 여러가지 라이브러리 중 적합한 것을 찾기 위한 프로젝트
+ - 메타데이터 포함되어야함 (특히 GPS 정보)
+ - 이미지 다중선택 기능 필수 / 크롭 기능 필수 아님
+ - 안드로이드의 경우, 여러 버전에서 잘 되어야함 
+ - 이미지 모두 허용, 선택 허용 권한에 따른 분기처리가 되어야함 
+   - iOS 전체   
+   - Android 14 이상
 
 ## ⚙️ 기능
 
@@ -28,12 +34,17 @@ RN 프로젝트에서 이미지 피커로 사용하는 여러가지 라이브러
 - 사진 정보 간단 조회
 
 
-- [x] react-native-image-picker
+- [x] react-native-image-picker (v7.0.0)
   1. android 와 iOS 모두 동작 확인
   2. 이미지를 선택하면 base64, uri, type, fileName, fileSize 등의 정보를 제공
-  3. Exif 정보를 제공하지 않음 - (그대로 이미지를 업로드할 때, 포함되어있을 것으로 추측)
-  4. 자체 리사이즈 기능이 있음
-  5. android 버전별로 동작이 다름 (13부터 OS의 사진선택 도구 활용, 그 이하는 미디어 저장소)
+  3. Exif 정보 출력 불가능 -> Exif 정보를 따로 불러와야 함
+  4. 이미지를 업로드했을 떄, 이미지의 Exif 정보 그대로 업로드 됨
+  5. 카메라 기능을 통해 촬영한 이미지는 Exif GPS 정보가 없음
+  6. 리사이즈 기능이 있음 
+  7. 리사이징을 통하면 Exif GPS 정보가 사라짐 
+  8. android 버전별로 동작이 다름 (13부터 OS의 사진선택 도구 활용, 그 이하는 미디어 저장소)
+  9. iOS 사진선택 / 모든 사진 허용 권한 구분 어려움
+
 
 - [x] react-native-image-crop-picker
   1. android 와 iOS 모두 동작 확인
@@ -43,11 +54,24 @@ RN 프로젝트에서 이미지 피커로 사용하는 여러가지 라이브러
   5. (android) 메타데이터 누락이 있음
   6. (iOS) crop 기능을 사용하면 이미지 사이즈가 줄어든다.
   7. android 버전별로 동작이 다름 (13부터 OS의 사진선택 도구 활용, 그 이하는 미디어 저장소)
-  8. (iOS) 갤러리 굿
+  8. iOS 버전 상관없이 동일한 동작
 
-- [ ] react-native-multiple-image-picker
 
-- [ ] @ko-developerhong/react-native-multiple-image-picker
+- [x] @baronha/react-native-multiple-image-picker (v1.0.4)
+  1. android 와 iOS 모두 동작 확인
+  2. 이미지를 선택하면 base64, uri(path), type, fileName, fileSize 등의 정보를 제공
+  3. Exif 정보 출력 불가능 -> Exif 정보를 따로 불러와야 함
+  4. android 에서는 Exif 정보가 살아있지만, iOS 에서는 Exif 정보가 사라짐
+  5. 이미지를 업로드했을 떄, 이미지가 가지고 있는 Exif 정보 포함됨 (iOS는 사라진 상태로 업로드)
+  6. 카메라 기능은 별도로 없고, OpenPicker 내에 있음
+  7. 이미지 크롭 기능 있음
+  8. android, iOS 모두 버전 상관없이 동일한 동작
+  9. iOS 사진선택 / 모든 사진 허용 권한 구분 가능
+
+
+- [x] @ko-developerhong/react-native-multiple-image-picker (v1.0.1 with custom patch)
+  - @baronha/react-native-multiple-image-picker 와 베이스가 동일하여 거의 동일한 동작을 보임
+
 
 - [ ] @react-native-camera-roll/camera-roll
 
