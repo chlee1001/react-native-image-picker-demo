@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Alert, ScrollView, Text } from 'react-native';
 import {
+  clean,
   Image as ImageInfoProps,
   openCamera,
+  openCropper,
   openPicker,
   Options,
 } from 'react-native-image-crop-picker';
@@ -12,11 +14,13 @@ import { checkAndRequestCameraLibraryPermission } from '../../utils/permissionHe
 import ScreenTitle from '../../components/ScreenTitle';
 import { isIOS } from '../../constants/common';
 import ImageDetails from '../../components/ImageDetail';
+import { requestUploadImage } from '../../utils/imageUploadService';
+
 
 const COMMON_OPTIONS: Options = {
   mediaType: 'photo',
-  includeBase64: false,
   multiple: true,
+  includeBase64: true,
   includeExif: true,
   loadingLabelText: 'Processing...',
   showsSelectedCount: true,
@@ -71,7 +75,7 @@ const ImageCropPicker = () => {
             latitude: image.exif['{GPS}'].Latitude,
             longitude: image.exif['{GPS}'].Longitude,
             altitude: image.exif['{GPS}'].Altitude,
-            accuracy: image.exif['{GPS}'].HPPositioningError,
+            accuracy: image.exif['{GPS}'].HPositioningError,
           }
         : undefined;
 
@@ -84,11 +88,11 @@ const ImageCropPicker = () => {
           }
         : undefined;
     } else {
-      gpsInfo = isAvailable(image.exif?.latitude)
+      gpsInfo = isAvailable(image.exif?.Latitude)
         ? {
-            latitude: image.exif.latitude,
-            longitude: image.exif.longitude,
-            altitude: image.exif.altitude,
+            latitude: image.exif.Latitude,
+            longitude: image.exif.Longitude,
+            altitude: image.exif.Altitude,
             accuracy: -1, // 안드로이드에서 정확도 정보가 누락되면 -1을 할당
           }
         : undefined;
@@ -158,14 +162,64 @@ const ImageCropPicker = () => {
       const imagesArray: ImageInfo[] = Array.isArray(tempImages)
         ? tempImages
         : [tempImages];
+
+      // const croppedImages = await Promise.all(
+      //     imagesArray.map(async(image,) => {
+      //         return await  openCropper({
+      //             ...COMMON_OPTIONS,
+      //             path: image.path,
+      //             width: image.width,
+      //             height: image.height,
+      //         }).then(async(croppedImage) => {
+      //
+      //             try {
+      //                 // 원본 이미지의 EXIF 데이터 가져오기]
+      //                 const exifData = await getImageExif({ imagePath: image.path });
+      //
+      //                 console.log('exifData: ', exifData)
+      //                 // Crop된 이미지에 EXIF 데이터 적용하고, 새 이미지 경로 가져오기
+      //                 if (exifData && croppedImage.path) {
+      //                     const outputPath = `${RNFS.DocumentDirectoryPath}/${image.filename}.jpg`;
+      //                     await applyExifToImage(exifData.exif, croppedImage.path, outputPath);
+      //
+      //                     // 업로드를 위한 새 이미지 경로 설정
+      //                     croppedImage.path = outputPath;
+      //                 }
+      //             } catch (error) {
+      //                 console.error('Error applying EXIF data2:', error);
+      //             }
+      //
+      //             await requestUploadImage({
+      //                 uri: croppedImage.path,
+      //                 type: croppedImage.mime,
+      //             });
+      //             return createImageObject(croppedImage, isIOS);
+      //         }).catch(e => {
+      //             console.log('openCropper: ', e);
+      //             return createImageObject(image, isIOS);
+      //         });
+      //     })
+      // );
+
+      // setSelectedImages(croppedImages);
+
       const parsedImages = imagesArray.map((image) =>
         createImageObject(image, isIOS),
       );
-
       setSelectedImages(parsedImages);
     } catch (e: any) {
       handleError(e);
     }
+  };
+
+  const handleCleanUp = async () => {
+    clean()
+      .then(() => {
+        console.log('removed all tmp images from tmp directory');
+      })
+      .catch((e) => {
+        Alert.alert(e);
+      });
   };
 
   return (
@@ -198,19 +252,14 @@ const ImageCropPicker = () => {
         }}
         buttonClick={handleImageLibrary}
       />
+      <CommonButton
+        buttonTitle={'Clean Up'}
+        buttonStyle={{
+          backgroundColor: 'gray',
+        }}
+        buttonClick={handleCleanUp}
+      />
     </CommonSafeAreaView>
   );
 };
 export default ImageCropPicker;
-
-/**
- * react-native-image-crop-picker 결론
- * 1. android 와 iOS 모두 동작 확인
- * 2. 이미지를 선택하면 base64, uri, type, fileName, fileSize 등의 정보를 제공
- * 3. 이미지를 선택하면 exif 정보를 제공한다.
- * 4. crop 기능을 사용하면 메타데이터가 제대로 나오지 않는다. 대부분 사라진다. (iOS)는 이미지 이름도 사라짐
- * 5. (android) 메타데이터 누락이 있음
- * 6. (iOS) crop 기능을 사용하면 이미지 사이즈가 줄어든다.
- * 7. android 버전별로 동작이 다름 (13부터 OS의 사진선택 도구 활용, 그 이하는 미디어 저장소)
- * 8. (iOS) 갤러리 굿
- */
