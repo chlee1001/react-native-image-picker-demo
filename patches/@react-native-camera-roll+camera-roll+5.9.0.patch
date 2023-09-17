@@ -1,0 +1,213 @@
+diff --git a/node_modules/@react-native-camera-roll/camera-roll/ios/RNCCameraRoll.mm b/node_modules/@react-native-camera-roll/camera-roll/ios/RNCCameraRoll.mm
+index 10c53a3..bdc67c2 100644
+--- a/node_modules/@react-native-camera-roll/camera-roll/ios/RNCCameraRoll.mm
++++ b/node_modules/@react-native-camera-roll/camera-roll/ios/RNCCameraRoll.mm
+@@ -252,24 +252,34 @@ static void requestPhotoLibraryAccess(RCTPromiseRejectBlock reject, PhotosAuthor
+                   reject:(RCTPromiseRejectBlock)reject)
+ {
+   NSString *const mediaType = [params objectForKey:@"assetType"] ? [RCTConvert NSString:params[@"assetType"]] : @"All";
+-    NSLog(@"type: %@", mediaType);
+-  PHFetchOptions* options = [[PHFetchOptions alloc] init];
+-    NSLog(@"Options: %@", options);
+-  PHFetchResult<PHAssetCollection *> *const assetCollectionFetchResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeAlbum subtype:PHAssetCollectionSubtypeAny options:options];
++  NSString *const albumType = [params objectForKey:@"albumType"] ? [RCTConvert NSString:params[@"albumType"]] : @"Album";
+   NSMutableArray * result = [NSMutableArray new];
+-  [assetCollectionFetchResult enumerateObjectsUsingBlock:^(PHAssetCollection * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+-    PHFetchOptions *const assetFetchOptions = [RCTConvert PHFetchOptionsFromMediaType:mediaType fromTime:0 toTime:0];
+-    // Enumerate assets within the collection
+-    PHFetchResult<PHAsset *> *const assetsFetchResult = [PHAsset fetchAssetsInAssetCollection:obj options:assetFetchOptions];
+-    if (assetsFetchResult.count > 0) {
+-      NSString *subtypeString = subTypeLabelForCollection(obj);
+-      [result addObject:@{
+-        @"title": [obj localizedTitle],
+-        @"count": @(assetsFetchResult.count),
+-        @"subtype": subtypeString
+-      }];
++  NSString *__block fetchedAlbumType = nil;
++    void (^convertAsset)(PHAssetCollection * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) =
++      ^(PHAssetCollection * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
++        PHFetchOptions *const assetFetchOptions = [RCTConvert PHFetchOptionsFromMediaType:mediaType fromTime:0 toTime:0];
++        // Enumerate assets within the collection
++        PHFetchResult<PHAsset *> *const assetsFetchResult = [PHAsset fetchAssetsInAssetCollection:obj options:assetFetchOptions];
++        if (assetsFetchResult.count > 0) {
++          [result addObject:@{
++            @"title": [obj localizedTitle],
++            @"count": @(assetsFetchResult.count),
++            @"type": fetchedAlbumType
++          }];
++        }
++      };
++
++    PHFetchOptions* options = [[PHFetchOptions alloc] init];
++    if ([albumType isEqualToString:@"Album"] || [albumType isEqualToString:@"All"]) {
++      fetchedAlbumType = @"Album";
++      PHFetchResult<PHAssetCollection *> *const assets = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeAlbum subtype:PHAssetCollectionSubtypeAny options:options];
++      [assets enumerateObjectsUsingBlock:convertAsset];
++    }
++    if ([albumType isEqualToString:@"SmartAlbum"] || [albumType isEqualToString:@"All"]) {
++      fetchedAlbumType = @"SmartAlbum";
++      PHFetchResult<PHAssetCollection *> *const assets = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAny options:options];
++      [assets enumerateObjectsUsingBlock:convertAsset];
+     }
+-  }];
+   resolve(result);
+ }
+ 
+@@ -324,13 +334,6 @@ static void RCTResolvePromise(RCTPromiseResolveBlock resolve,
+   BOOL __block includeImageSize = [include indexOfObject:@"imageSize"] != NSNotFound;
+   BOOL __block includePlayableDuration = [include indexOfObject:@"playableDuration"] != NSNotFound;
+ 
+-  // If groupTypes is "all", we want to fetch the SmartAlbum "all photos". Otherwise, all
+-  // other groupTypes values require the "album" collection type.
+-  PHAssetCollectionType const collectionType = ([groupTypes isEqualToString:@"all"]
+-                                                ? PHAssetCollectionTypeSmartAlbum
+-                                                : PHAssetCollectionTypeAlbum);
+-  PHAssetCollectionSubtype const collectionSubtype = [RCTConvert PHAssetCollectionSubtype:groupTypes];
+-
+   // Predicate for fetching assets within a collection
+   PHFetchOptions *const assetFetchOptions = [RCTConvert PHFetchOptionsFromMediaType:mediaType fromTime:fromTime toTime:toTime];
+   // We can directly set the limit if we guarantee every image fetched will be
+@@ -356,13 +359,6 @@ static void RCTResolvePromise(RCTPromiseResolveBlock resolve,
+   BOOL __block resolvedPromise = NO;
+   NSMutableArray<NSDictionary<NSString *, id> *> *assets = [NSMutableArray new];
+ 
+-  // Filter collection name ("group")
+-  PHFetchOptions *const collectionFetchOptions = [PHFetchOptions new];
+-  collectionFetchOptions.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"endDate" ascending:NO]];
+-  if (groupName != nil) {
+-    collectionFetchOptions.predicate = [NSPredicate predicateWithFormat:@"localizedTitle = %@", groupName];
+-  }
+-
+   BOOL __block stopCollections_;
+   NSString __block *currentCollectionName;
+ 
+@@ -476,14 +472,35 @@ static void RCTResolvePromise(RCTPromiseResolveBlock resolve,
+       currentCollectionName = @"All Photos";
+       [assetFetchResult enumerateObjectsUsingBlock:collectAsset];
+     } else {
+-      PHFetchResult<PHAssetCollection *> *const assetCollectionFetchResult = [PHAssetCollection fetchAssetCollectionsWithType:collectionType subtype:collectionSubtype options:collectionFetchOptions];
+-      [assetCollectionFetchResult enumerateObjectsUsingBlock:^(PHAssetCollection * _Nonnull assetCollection, NSUInteger collectionIdx, BOOL * _Nonnull stopCollections) {
+-        // Enumerate assets within the collection
+-        PHFetchResult<PHAsset *> *const assetsFetchResult = [PHAsset fetchAssetsInAssetCollection:assetCollection options:assetFetchOptions];
+-        currentCollectionName = [assetCollection localizedTitle];
+-        [assetsFetchResult enumerateObjectsUsingBlock:collectAsset];
+-        *stopCollections = stopCollections_;
+-      }];
++      PHFetchResult<PHAssetCollection *> * assetCollectionFetchResult;
++            if ([groupTypes isEqualToString:@"smartalbum"]) {
++              assetCollectionFetchResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAny options:nil];
++              [assetCollectionFetchResult enumerateObjectsUsingBlock:^(PHAssetCollection * _Nonnull assetCollection, NSUInteger collectionIdx, BOOL * _Nonnull stopCollections) {
++                if ([assetCollection.localizedTitle isEqualToString:groupName]) {
++                  PHFetchResult<PHAsset *> *const assetsFetchResult = [PHAsset fetchAssetsInAssetCollection:assetCollection options:assetFetchOptions];
++                  currentCollectionName = [assetCollection localizedTitle];
++                  [assetsFetchResult enumerateObjectsUsingBlock:collectAsset];
++                }
++                *stopCollections = stopCollections_;
++              }];
++            } else {
++              PHAssetCollectionSubtype const collectionSubtype = [RCTConvert PHAssetCollectionSubtype:groupTypes];
++
++              // Filter collection name ("group")
++              PHFetchOptions *const collectionFetchOptions = [PHFetchOptions new];
++              collectionFetchOptions.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"endDate" ascending:NO]];
++              if (groupName != nil) {
++                collectionFetchOptions.predicate = [NSPredicate predicateWithFormat:@"localizedTitle = %@", groupName];
++              }
++              assetCollectionFetchResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeAlbum subtype:collectionSubtype options:collectionFetchOptions];
++              [assetCollectionFetchResult enumerateObjectsUsingBlock:^(PHAssetCollection * _Nonnull assetCollection, NSUInteger collectionIdx, BOOL * _Nonnull stopCollections) {
++                  // Enumerate assets within the collection
++                PHFetchResult<PHAsset *> *const assetsFetchResult = [PHAsset fetchAssetsInAssetCollection:assetCollection options:assetFetchOptions];
++                currentCollectionName = [assetCollection localizedTitle];
++                [assetsFetchResult enumerateObjectsUsingBlock:collectAsset];
++                *stopCollections = stopCollections_;
++              }];
++            }
+     }
+ 
+     // If we get this far and haven't resolved the promise yet, we reached the end of the list of photos
+diff --git a/node_modules/@react-native-camera-roll/camera-roll/lib/typescript/CameraRoll.d.ts b/node_modules/@react-native-camera-roll/camera-roll/lib/typescript/CameraRoll.d.ts
+index 2279c38..f1debf0 100644
+--- a/node_modules/@react-native-camera-roll/camera-roll/lib/typescript/CameraRoll.d.ts
++++ b/node_modules/@react-native-camera-roll/camera-roll/lib/typescript/CameraRoll.d.ts
+@@ -1,7 +1,8 @@
+-export declare type GroupTypes = 'Album' | 'All' | 'Event' | 'Faces' | 'Library' | 'PhotoStream' | 'SavedPhotos';
++export declare type GroupTypes = 'Album' | 'All' | 'Event' | 'Faces' | 'Library' | 'SmartAlbum' | 'PhotoStream' | 'SavedPhotos';
+ export declare type SubTypes = 'PhotoPanorama' | 'PhotoHDR' | 'PhotoScreenshot' | 'PhotoLive' | 'PhotoDepthEffect' | 'VideoStreamed' | 'VideoHighFrameRate' | 'VideoTimelapse';
+ export declare type Include = 'filename' | 'fileSize' | 'fileExtension' | 'location' | 'imageSize' | 'playableDuration' | 'orientation';
+ export declare type AssetType = 'All' | 'Videos' | 'Photos';
++export declare type AlbumType = 'All' | 'Album' | 'SmartAlbum';
+ /**
+  * Shape of the param arg for the `getPhotos` function.
+  */
+@@ -96,12 +97,14 @@ export declare type SaveToCameraRollOptions = {
+ };
+ export declare type GetAlbumsParams = {
+     assetType?: AssetType;
++    albumType?: AlbumType;
+ };
+ export declare type AlbumSubType = 'AlbumRegular' | 'AlbumSyncedEvent' | 'AlbumSyncedFaces' | 'AlbumSyncedAlbum' | 'AlbumImported' | 'AlbumMyPhotoStream' | 'AlbumCloudShared' | 'Unknown';
+ export declare type Album = {
+     title: string;
+     count: number;
+     subtype?: AlbumSubType;
++    type?: string;
+ };
+ /**
+  * `CameraRoll` provides access to the local camera roll or photo library.
+@@ -115,6 +118,7 @@ export declare class CameraRoll {
+         Event: string;
+         Faces: string;
+         Library: string;
++        SmartAlbum: string;
+         PhotoStream: string;
+         SavedPhotos: string;
+     };
+@@ -123,6 +127,12 @@ export declare class CameraRoll {
+         Videos: string;
+         Photos: string;
+     };
++    static AlbumTypeOptions: {
++        All: string;
++        Album: string;
++        SmartAlbum: string;
++    };
++
+     /**
+      * On iOS: requests deletion of a set of photos from the camera roll.
+      * On Android: Deletes a set of photos from the camera roll.
+diff --git a/node_modules/@react-native-camera-roll/camera-roll/src/CameraRoll.ts b/node_modules/@react-native-camera-roll/camera-roll/src/CameraRoll.ts
+index 50a773e..ae59347 100644
+--- a/node_modules/@react-native-camera-roll/camera-roll/src/CameraRoll.ts
++++ b/node_modules/@react-native-camera-roll/camera-roll/src/CameraRoll.ts
+@@ -29,6 +29,7 @@ export type GroupTypes =
+   | 'Event'
+   | 'Faces'
+   | 'Library'
++  | 'SmartAlbum'
+   | 'PhotoStream'
+   | 'SavedPhotos';
+ 
+@@ -52,6 +53,7 @@ export type Include =
+   | 'orientation';
+ 
+ export type AssetType = 'All' | 'Videos' | 'Photos';
++export type AlbumType = 'All' | 'Album' | 'SmartAlbum';
+ 
+ /**
+  * Shape of the param arg for the `getPhotos` function.
+@@ -161,6 +163,7 @@ export type SaveToCameraRollOptions = {
+ 
+ export type GetAlbumsParams = {
+   assetType?: AssetType;
++  albumType?: AlbumType;
+ };
+ 
+ export type AlbumSubType =
+@@ -177,6 +180,7 @@ export type Album = {
+   title: string;
+   count: number;
+   subtype?: AlbumSubType;
++  type?: AlbumType;
+ };
+ 
+ /**
