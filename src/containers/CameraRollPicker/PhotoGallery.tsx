@@ -61,12 +61,12 @@ interface ImageInfo {
   modificationTime?: number;
 }
 
-const PICKER_HEIGHT = 60;
+const PICKER_HEIGHT = 30;
 const PhotoGallery = () => {
   const route = useRoute();
   const params = route.params as PhotoGalleryProps;
   const { albums } = params;
-  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
+  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(albums[0]);
   const [selectedImages, setSelectedImages] = useState<Array<ImageInfo>>([]);
   const [numColumns, setNumColumns] = useState(3);
   const [images, setImages] = useState<
@@ -79,7 +79,6 @@ const PhotoGallery = () => {
     includeSharedAlbums: true,
   });
   const [isLoading, setIsLoading] = useState(false);
-
   const [photos, getPhotos] = useCameraRoll();
   const { width: deviceWidth } = useWindowDimensions();
 
@@ -92,6 +91,7 @@ const PhotoGallery = () => {
       ...optionParams.current,
       groupName:
         selectedAlbum?.title === 'All Photos' ? '' : selectedAlbum?.title,
+      groupTypes: selectedAlbum?.type || 'All',
     });
   };
 
@@ -247,6 +247,7 @@ const PhotoGallery = () => {
 
   useEffect(() => {
     if (photos.edges.length === 0) {
+      setIsLoading(false);
       return;
     }
     setIsLoading(false);
@@ -291,12 +292,14 @@ const PhotoGallery = () => {
             title={selectedAlbum?.title || 'Select an album'}
             items={albums.map((album) => ({
               label: `${album.title} (${album.count})`,
-              value: album.title,
+              value: album.title + album.type,
             }))}
             onSelect={(item) => {
               setSelectedAlbum(() => {
                 return (
-                  albums.find((album) => album.title === item.value) || null
+                  albums.find(
+                    (album) => album.title + album.type === item.value,
+                  ) || null
                 );
               });
             }}

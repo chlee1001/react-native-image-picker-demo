@@ -7,12 +7,7 @@ import { Album } from '@react-native-camera-roll/camera-roll/src/CameraRoll';
 import { navigateScreenTo } from '../../utils/navigationHelper';
 
 const CameraRollPicker = () => {
-  const [albums, setAlbums] = useState<Album[]>([
-    {
-      title: '전체보기',
-      count: 0,
-    },
-  ]);
+  const [albums, setAlbums] = useState<Album[]>([]);
   const handleCameraImage = () => {
     navigateScreenTo('PhotoCamera');
   };
@@ -25,6 +20,17 @@ const CameraRollPicker = () => {
   const getAlbums = async () => {
     const cameraRollAlbums = await CameraRoll.getAlbums({
       assetType: 'Photos',
+      albumType: 'All',
+    });
+
+    cameraRollAlbums.sort((a, b) => {
+      if (a.type === 'SmartAlbum' && b.type === 'Album') {
+        return -1;
+      }
+      if (a.type === 'Album' && b.type === 'SmartAlbum') {
+        return 1;
+      }
+      return 0;
     });
 
     const allPhotos = {
