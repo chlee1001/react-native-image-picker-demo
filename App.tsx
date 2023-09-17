@@ -9,12 +9,17 @@ import ImagePicker from './src/containers/ImagePicker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import ImageCropPicker from './src/containers/ImageCropPicker';
 import ImageMultiPicker from './src/containers/ImageMultiPicker';
+import CameraRollPicker from './src/containers/CameraRollPicker';
+import PhotoGallery from './src/containers/CameraRollPicker/PhotoGallery';
+import { Album } from '@react-native-camera-roll/camera-roll/src/CameraRoll';
 
 type RootStackParamList = {
   Home: undefined;
   ImagePicker: undefined;
   ImageCropPicker: undefined;
   ImageMultiPicker: undefined;
+  CameraRollPicker: undefined;
+  PhotoGallery: { albums: Album[] };
 };
 
 const RootStack = createStackNavigator<RootStackParamList>();
@@ -43,6 +48,16 @@ function App() {
             <RootStack.Screen
               name="ImageMultiPicker"
               component={ImageMultiPicker}
+              options={{ headerShown: false }}
+            />
+            <RootStack.Screen
+              name="CameraRollPicker"
+              component={CameraRollPicker}
+              options={{ headerShown: false }}
+            />
+            <RootStack.Screen
+              name="PhotoGallery"
+              component={PhotoGallery}
               options={{ headerShown: false }}
             />
           </RootStack.Navigator>
