@@ -77,7 +77,6 @@ const PhotoGallery = () => {
     first: PICKER_HEIGHT,
     assetType: 'Photos',
     includeSharedAlbums: true,
-
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -213,20 +212,22 @@ const PhotoGallery = () => {
           </FastImage>
         )}
         {/* iOS FastImage 는 Ph 경로의 이미지를 읽을 수 없음 */}
-        <ImageBackground
-          source={{ uri: image.uri }}
-          resizeMode="cover"
-          style={dStyles().imageBackground}>
-          {isSelected && (
-            <SelectImageOrder
-              orderNumber={
-                selectedImages.findIndex(
-                  (selectedImage) => selectedImage.uri === image.uri,
-                ) + 1
-              }
-            />
-          )}
-        </ImageBackground>
+        {isIOS && (
+          <ImageBackground
+            source={{ uri: image.uri }}
+            resizeMode="cover"
+            style={dStyles().imageBackground}>
+            {isSelected && (
+              <SelectImageOrder
+                orderNumber={
+                  selectedImages.findIndex(
+                    (selectedImage) => selectedImage.uri === image.uri,
+                  ) + 1
+                }
+              />
+            )}
+          </ImageBackground>
+        )}
       </TouchableOpacity>
     );
   };
@@ -269,7 +270,7 @@ const PhotoGallery = () => {
 
   return (
     <>
-      <CommonSafeAreaView>
+      <CommonSafeAreaView edges={['top', 'bottom']}>
         <ScreenTitle title="CameraRollPicker" />
         {limited && (
           <TouchableOpacity

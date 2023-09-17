@@ -13,6 +13,7 @@ import { useRoute } from '@react-navigation/native';
 import { goBack } from '../../utils/navigationHelper';
 import { SAFE_AREA_PADDING } from '../../constants/common';
 import { StatusBarBlurBackground } from '../../components/StatusBarBlurBackground';
+import {requestUploadImage} from "../../utils/imageUploadService";
 
 const requestSavePermission = async (): Promise<boolean> => {
   return true;
@@ -55,6 +56,10 @@ export function MediaPage() {
         type: type,
       });
       setSavingState('saved');
+      await requestUploadImage({
+        uri: path,
+        type,
+      });
       goBack();
       goBack()
     } catch (e) {
