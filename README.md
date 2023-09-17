@@ -73,7 +73,18 @@ RN 프로젝트에서 이미지 피커로 사용하는 여러가지 라이브러
   - @baronha/react-native-multiple-image-picker 와 베이스가 동일하여 거의 동일한 동작을 보임
 
 
-- [ ] @react-native-camera-roll/camera-roll
+- [x] @react-native-camera-roll/camera-roll + react-native-vision-camera
+  1. android 와 iOS 모두 동작 확인
+  2. 이미지를 선택하면 다양한 메타데이터 정보를 제공
+  3. Exif 정보 출력 가능
+  4. 이미지를 업로드했을 떄, 이미지가 가지고 있는 Exif 정보 포함됨
+  5. android, iOS 모두 동일한 UI 제공
+  6. 크롭, 리사이징 기능 없음
+  7. iOS 사진선택 / 모든 사진 허용 권한 구분 가능
+  8. iOS 이미지 로드 성능저하 있음
+  9. 동작을 커스터마이징하기 용이함
+  10. 카메라 촬영 시, 메타데이터 포함됨 
+  11. 카메라 촬영 시, Exif GPS 정보 미포함
 
 ## 🛠 설치 방법
 
