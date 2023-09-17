@@ -41,6 +41,9 @@ function PickerGroup() {
           buttonStyle={{
             backgroundColor: 'lightyellow',
           }}
+          buttonClick={() => {
+            navigateScreenTo('CameraRollPicker');
+          }}
         />
       </ScrollView>
     </CommonSafeAreaView>
