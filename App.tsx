@@ -12,6 +12,8 @@ import ImageMultiPicker from './src/containers/ImageMultiPicker';
 import CameraRollPicker from './src/containers/CameraRollPicker';
 import PhotoGallery from './src/containers/CameraRollPicker/PhotoGallery';
 import { Album } from '@react-native-camera-roll/camera-roll/src/CameraRoll';
+import PhotoCamera from './src/containers/CameraRollPicker/PhotoCamera';
+import { MediaPage } from './src/containers/CameraRollPicker/MediaPage';
 
 type RootStackParamList = {
   Home: undefined;
@@ -20,6 +22,11 @@ type RootStackParamList = {
   ImageMultiPicker: undefined;
   CameraRollPicker: undefined;
   PhotoGallery: { albums: Album[] };
+  PhotoCamera: undefined;
+  MediaPage: {
+    path: string;
+    type: 'photo';
+  };
 };
 
 const RootStack = createStackNavigator<RootStackParamList>();
@@ -58,6 +65,16 @@ function App() {
             <RootStack.Screen
               name="PhotoGallery"
               component={PhotoGallery}
+              options={{ headerShown: false }}
+            />
+            <RootStack.Screen
+              name="PhotoCamera"
+              component={PhotoCamera}
+              options={{ headerShown: false }}
+            />
+            <RootStack.Screen
+              name="MediaPage"
+              component={MediaPage}
               options={{ headerShown: false }}
             />
           </RootStack.Navigator>

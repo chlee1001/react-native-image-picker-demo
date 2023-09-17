@@ -24,7 +24,8 @@ import CommonButton from '../../components/CommonButton';
 import { openSettings } from 'react-native-permissions';
 import SelectImageOrder from './components/SelectedImageOrder';
 import { requestUploadImage } from '../../utils/imageUploadService';
-import { isIOS } from '../../constants/common';
+import { isAndroid, isIOS } from '../../constants/common';
+import FastImage from 'react-native-fast-image';
 
 function EmptyImages({ isLoading }: { isLoading: boolean }) {
   if (isLoading) return null;
@@ -60,7 +61,7 @@ interface ImageInfo {
   modificationTime?: number;
 }
 
-const PICKER_HEIGHT = 20;
+const PICKER_HEIGHT = 60;
 const PhotoGallery = () => {
   const route = useRoute();
   const params = route.params as PhotoGalleryProps;
@@ -76,6 +77,7 @@ const PhotoGallery = () => {
     first: PICKER_HEIGHT,
     assetType: 'Photos',
     includeSharedAlbums: true,
+
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -93,8 +95,6 @@ const PhotoGallery = () => {
         selectedAlbum?.title === 'All Photos' ? '' : selectedAlbum?.title,
     });
   };
-
-
 
   const handleOnEndReached = () => {
     if (!photos.page_info.has_next_page) {
@@ -192,6 +192,27 @@ const PhotoGallery = () => {
           await handleOnPressImage(image);
         }}
         style={imageContainerStyle}>
+        {isAndroid && (
+          <FastImage
+            source={{ uri: image.uri, priority: FastImage.priority.normal }}
+            style={{
+              ...dStyles().imageBackground,
+            }}
+            resizeMode={FastImage.resizeMode.cover}
+            onLoadEnd={() => {}}
+            onLoad={() => {}}>
+            {isSelected && (
+              <SelectImageOrder
+                orderNumber={
+                  selectedImages.findIndex(
+                    (selectedImage) => selectedImage.uri === image.uri,
+                  ) + 1
+                }
+              />
+            )}
+          </FastImage>
+        )}
+        {/* iOS FastImage 는 Ph 경로의 이미지를 읽을 수 없음 */}
         <ImageBackground
           source={{ uri: image.uri }}
           resizeMode="cover"
@@ -233,8 +254,6 @@ const PhotoGallery = () => {
         ...optionParams.current,
         first: optionParams.current.first + PICKER_HEIGHT,
       };
-
-
     }
     const newImages = photos.edges.map((edge) => {
       return {

@@ -14,7 +14,7 @@ const CameraRollPicker = () => {
     },
   ]);
   const handleCameraImage = () => {
-    console.log('handleCameraImage');
+    navigateScreenTo('PhotoCamera');
   };
   const handleImageLibrary = () => {
     navigateScreenTo('PhotoGallery', {
