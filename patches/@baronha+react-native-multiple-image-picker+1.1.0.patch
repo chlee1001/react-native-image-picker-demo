@@ -1,0 +1,257 @@
+diff --git a/node_modules/@baronha/react-native-multiple-image-picker/ios/CustomPhotoPicker/CustomPhotoPickerViewController.swift b/node_modules/@baronha/react-native-multiple-image-picker/ios/CustomPhotoPicker/CustomPhotoPickerViewController.swift
+index d7c5998..abe2cc3 100644
+--- a/node_modules/@baronha/react-native-multiple-image-picker/ios/CustomPhotoPicker/CustomPhotoPickerViewController.swift
++++ b/node_modules/@baronha/react-native-multiple-image-picker/ios/CustomPhotoPicker/CustomPhotoPickerViewController.swift
+@@ -59,6 +59,9 @@ class CustomPhotoPickerViewController: TLPhotosPickerViewController {
+         self.customNavItem.leftBarButtonItem?.tintColor = .black
+         self.customNavItem.rightBarButtonItem?.tintColor = config.selectedColor
+ 
++        self.photosButton.tintColor = config.preventAutomaticLimitedAccessAlertColor
++        self.customNavItem.rightBarButtonItems = [self.doneButton, self.photosButton]
++
+         for subview in self.view.subviews {
+             guard let navbar = subview as? UINavigationBar else {
+                 break
+diff --git a/node_modules/@baronha/react-native-multiple-image-picker/ios/MultipleImagePicker.m b/node_modules/@baronha/react-native-multiple-image-picker/ios/MultipleImagePicker.m
+index 6eb8f21..4265365 100644
+--- a/node_modules/@baronha/react-native-multiple-image-picker/ios/MultipleImagePicker.m
++++ b/node_modules/@baronha/react-native-multiple-image-picker/ios/MultipleImagePicker.m
+@@ -6,4 +6,6 @@ RCT_EXTERN_METHOD(openPicker:(NSDictionary *)options
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+ 
++RCT_EXTERN_METHOD(dismissComplete)
++
+ @end
+diff --git a/node_modules/@baronha/react-native-multiple-image-picker/ios/MultipleImagePicker.swift b/node_modules/@baronha/react-native-multiple-image-picker/ios/MultipleImagePicker.swift
+index 7ea113e..dfe6446 100644
+--- a/node_modules/@baronha/react-native-multiple-image-picker/ios/MultipleImagePicker.swift
++++ b/node_modules/@baronha/react-native-multiple-image-picker/ios/MultipleImagePicker.swift
+@@ -5,6 +5,7 @@ import UIKit
+ 
+ var _isCrop = true
+ var _isPreview = true
++var _preventAutomaticLimitedAccessAlertColor = UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 1.0)
+ 
+ extension TLPhotosPickerConfigure {
+     var isPreview: Bool {
+@@ -20,6 +21,13 @@ extension TLPhotosPickerConfigure {
+             _isCrop = newValue
+         }
+     }
++    
++    var preventAutomaticLimitedAccessAlertColor: UIColor {
++        get { return _preventAutomaticLimitedAccessAlertColor }
++        set {
++            _preventAutomaticLimitedAccessAlertColor = newValue
++        }
++    }
+ }
+ 
+ var config = TLPhotosPickerConfigure()
+@@ -63,7 +71,7 @@ class MultipleImagePicker: NSObject, TLPhotosPickerViewControllerDelegate, UINav
+ 
+         DispatchQueue.main.async {
+             viewController.modalTransitionStyle = .coverVertical
+-            viewController.modalPresentationStyle = .fullScreen
++            viewController.modalPresentationStyle = uiModalPresentationStyleConverter(style: self.options["presentationStyle"] as! String)
+ 
+             self.getTopMostViewController()?.present(viewController, animated: true, completion: nil)
+         }
+@@ -90,6 +98,7 @@ class MultipleImagePicker: NSObject, TLPhotosPickerViewControllerDelegate, UINav
+ 
+         // config options
+         config.tapHereToChange = self.options["tapHereToChange"] as! String
++        config.customLocalizedTitle = self.options["customLocalizedTitle"] as! [String : String];
+         config.numberOfColumn = self.options["numberOfColumn"] as! Int
+         config.cancelTitle = self.options["cancelTitle"] as! String
+         config.doneTitle = self.options["doneTitle"] as! String
+@@ -120,7 +129,9 @@ class MultipleImagePicker: NSObject, TLPhotosPickerViewControllerDelegate, UINav
+         config.nibSet = (nibName: "Cell", bundle: MultipleImagePickerBundle.bundle())
+ 
+         config.allowedPhotograph = self.options["allowedPhotograph"] as! Bool
+-        //        configure.preventAutomaticLimitedAccessAlert = self.options["preventAutomaticLimitedAccessAlert"]
++
++        config.preventAutomaticLimitedAccessAlert = self.options["preventAutomaticLimitedAccessAlert"] as! Bool;
++        config.preventAutomaticLimitedAccessAlertColor = UIColor(hex: self.options["preventAutomaticLimitedAccessAlertColor"] as! String)
+ 
+         if options["selectedAssets"] != nil {
+             self.handleSelectedAssets(selectedList: options["selectedAssets"] as! NSArray)
+@@ -151,6 +162,12 @@ class MultipleImagePicker: NSObject, TLPhotosPickerViewControllerDelegate, UINav
+     func photoPickerDidCancel() {
+         self.reject("PICKER_CANCELLED", "User has canceled", nil)
+     }
++    func handleNoAlbumPermissions(picker: TLPhotosPickerViewController) {
++        self.reject("NO_ALBUM_PERMISSION", "Library Permission is Denied.", nil)
++    }
++    func handleNoCameraPermissions(picker: TLPhotosPickerViewController) {
++        self.reject("NO_CAMERA_PERMISSION", "Camera Permission is Denied.", nil)
++    }
+ 
+     internal func dismissLoading() {
+         if let vc = self.getTopMostViewController()?.presentedViewController, vc is UIAlertController {
+@@ -158,7 +175,7 @@ class MultipleImagePicker: NSObject, TLPhotosPickerViewControllerDelegate, UINav
+         }
+     }
+ 
+-    func dismissComplete() {
++    @objc func dismissComplete(){
+         DispatchQueue.main.async {
+             self.getTopMostViewController()?.dismiss(animated: true, completion: nil)
+         }
+@@ -222,7 +239,7 @@ class MultipleImagePicker: NSObject, TLPhotosPickerViewControllerDelegate, UINav
+         let selections = NSMutableArray(array: withTLPHAssets)
+ 
+         // add loading view
+-        let alert = UIAlertController(title: nil, message: "Please wait...", preferredStyle: .alert)
++        let alert = UIAlertController(title: nil, message: self.options["waitMessage"] as? String, preferredStyle: .alert)
+ 
+         alert.showLoading()
+ 
+@@ -277,6 +294,36 @@ class MultipleImagePicker: NSObject, TLPhotosPickerViewControllerDelegate, UINav
+     }
+ }
+ 
++func uiModalPresentationStyleConverter(style: String) -> UIModalPresentationStyle {
++    if #available(iOS 13, *) {
++        switch style {
++        case "fullScreen":
++            return .fullScreen
++        case "pageSheet":
++            return .pageSheet
++        case "formSheet":
++            return .formSheet
++        case "currentContext":
++            return .currentContext
++        case "custom":
++            return .custom
++        case "overFullScreen":
++            return .overFullScreen
++        case "overCurrentContext":
++            return .overCurrentContext
++        case "popover":
++            return .popover
++        case "automatic":
++            return .automatic
++        default:
++            return .fullScreen
++        }
++    } else {
++        return .fullScreen
++    }
++}
++
++
+ extension UIViewController {
+     func getTopVC() -> UIViewController? {
+         var topMostViewController = UIApplication.shared.keyWindow?.rootViewController
+@@ -328,7 +375,7 @@ extension MultipleImagePicker: CropViewControllerDelegate {
+         // Dismiss twice for crop controller & picker controller
+         DispatchQueue.main.async {
+             cropViewController.dismiss(animated: true) {
+-                let alert = UIAlertController(title: nil, message: "Please wait...", preferredStyle: .alert)
++                let alert = UIAlertController(title: nil, message: self.options["waitMessage"] as? String, preferredStyle: .alert)
+ 
+                 alert.showLoading()
+ 
+diff --git a/node_modules/@baronha/react-native-multiple-image-picker/lib/module/index.js b/node_modules/@baronha/react-native-multiple-image-picker/lib/module/index.js
+index a780a42..32c2ba8 100644
+--- a/node_modules/@baronha/react-native-multiple-image-picker/lib/module/index.js
++++ b/node_modules/@baronha/react-native-multiple-image-picker/lib/module/index.js
+@@ -18,6 +18,7 @@ let defaultOptions = {
+   thumbnailHeight: Math.round(height / 2),
+   allowedLivePhotos: true,
+   preventAutomaticLimitedAccessAlert: true,
++  preventAutomaticLimitedAccessAlertColor: '#FB9300',
+   // newest iOS 14
+   emptyMessage: 'No albums',
+   selectMessage: 'Select',
+@@ -29,6 +30,10 @@ let defaultOptions = {
+   messageTitleButton: 'OK',
+   cancelTitle: 'Cancel',
+   tapHereToChange: 'Tap here to change',
++  // custom
++  waitMessage: 'Please wait...',
++  presentationStyle: 'fullScreen',
++  customLocalizedTitle: { 'Camera Roll': 'Camera Roll' },
+   //****//
+   //**Android**//
+   //****//
+diff --git a/node_modules/@baronha/react-native-multiple-image-picker/src/index.d.ts b/node_modules/@baronha/react-native-multiple-image-picker/src/index.d.ts
+index f8ec0d3..5837cd2 100644
+--- a/node_modules/@baronha/react-native-multiple-image-picker/src/index.d.ts
++++ b/node_modules/@baronha/react-native-multiple-image-picker/src/index.d.ts
+@@ -59,10 +59,9 @@ export type Options<T extends MediaType = MediaType.ALL> = {
+   autoPlay?: boolean;
+   muteAudio?: boolean;
+   preventAutomaticLimitedAccessAlert?: boolean; // newest iOS 14
++  preventAutomaticLimitedAccessAlertColor?: string;
+   numberOfColumn?: number;
+   maxSelectedAssets?: number;
+-  fetchOption?: Object;
+-  fetchCollectionOption?: Object;
+   maximumMessageTitle?: string;
+   maximumMessage?: string;
+   messageTitleButton?: string;
+@@ -70,6 +69,10 @@ export type Options<T extends MediaType = MediaType.ALL> = {
+   thumbnailWidth?: number;
+   thumbnailHeight?: number;
+   haveThumbnail?: boolean;
++  // custom
++  waitMessage?: string;
++  presentationStyle?: string;
++  customLocalizedTitle?: { [key: string]: string };
+ };
+ 
+ export interface SinglePickerOptions {
+@@ -100,6 +103,7 @@ type MultipleImagePickerType = {
+   openPicker<T extends MediaType = MediaType.ALL>(
+     options: SinglePickerOptions & MediaTypeOptions[T] & Options<T>
+   ): Promise<MediaTypeResults[T]>;
++  dismissComplete(): Promise<void>;
+ };
+ 
+ const { MultipleImagePicker } = NativeModules;
+diff --git a/node_modules/@baronha/react-native-multiple-image-picker/src/index.js b/node_modules/@baronha/react-native-multiple-image-picker/src/index.js
+index 19a645e..a171151 100644
+--- a/node_modules/@baronha/react-native-multiple-image-picker/src/index.js
++++ b/node_modules/@baronha/react-native-multiple-image-picker/src/index.js
+@@ -15,6 +15,7 @@ let defaultOptions = {
+   thumbnailHeight: Math.round(height / 2),
+   allowedLivePhotos: true,
+   preventAutomaticLimitedAccessAlert: true, // newest iOS 14
++  preventAutomaticLimitedAccessAlertColor: '#FB9300',
+   emptyMessage: 'No albums',
+   selectMessage: 'Select',
+   deselectMessage: 'Deselect',
+@@ -25,6 +26,10 @@ let defaultOptions = {
+   messageTitleButton: 'OK',
+   cancelTitle: 'Cancel',
+   tapHereToChange: 'Tap here to change',
++  // custom
++  waitMessage: 'Please wait...',
++  presentationStyle: 'fullScreen',
++  customLocalizedTitle: { 'Camera Roll': 'Camera Roll' },
+ 
+   //****//
+ 
+@@ -75,3 +80,19 @@ export const openPicker = (optionsPicker) => {
+     }
+   });
+ };
++
++export const dismissComplete = () => {
++  return new Promise(async (resolve, reject) => {
++    try {
++      const response = await MultipleImagePicker.dismissComplete();
++      resolve(response);
++    } catch (e) {
++      reject(e);
++    }
++  });
++}
++
++export default {
++  openPicker,
++  dismissComplete,
++}
