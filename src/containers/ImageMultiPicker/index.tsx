@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { Alert, ScrollView, Text } from 'react-native';
-// import {
-//     MediaType,
-//     openPicker,
-//     Options,
-// } from '@baronha/react-native-multiple-image-picker';
+import MultipleImagePicker, {
+  MediaType,
+  Options,
+} from '@baronha/react-native-multiple-image-picker';
 // import MultipleImagePicker, {Options} from '@ko-developerhong/react-native-multiple-image-picker';
-
 import CommonSafeAreaView from '../../components/CommonSafeAreaView';
 import CommonButton from '../../components/CommonButton';
 import { checkAndRequestCameraLibraryPermission } from '../../utils/permissionHelper';
@@ -16,24 +14,33 @@ import { getImageExif } from '../../utils/imageHelper';
 import { requestUploadImage } from '../../utils/imageUploadService';
 import { isIOS } from '../../constants/common';
 
-// const COMMON_OPTIONS: Options = {
-//   // isPreview: true,
-//   // selectedColor: 'blue',
-//   // allowedLivePhotos: true,
-//   // allowedAlbumCloudShared: true,
-//   // preventAutomaticLimitedAccessAlert: true,
-//   // numberOfColumn: 3,
-//   singleSelectedMode: true,
-//     mediaType: 'image',
-//     tapHereToChange: '앨범 변경',
-//     doneTitle: '완료',
-//     cancelTitle: '취소',
-//     selectMessage: '선택',
-//     deselectMessage: '선택 해제',
-//     selectedColor: '#182F80',
-//     maximumMessageTitle: '선택 불가',
-//     presentationStyle: 'pageSheet',
-// };
+const MAX_ASSET = 3;
+const COMMON_OPTIONS: Options<MediaType.IMAGE> = {
+  usedCameraButton: true,
+  isPreview: true,
+  numberOfColumn: 4,
+  maxSelectedAssets: 3,
+  allowedLivePhotos: true,
+  // custom
+  tapHereToChange: '앨범 변경',
+  doneTitle: '완료',
+  cancelTitle: '취소',
+  selectMessage: '선택',
+  deselectMessage: '선택 해제',
+  selectedColor: '#182F80',
+  maximumMessageTitle: '선택 불가',
+  maximumMessage: `파일은 최대 ${MAX_ASSET}개 까지 첨부가능합니다.`,
+  messageTitleButton: '확인',
+  waitMessage: '사진을 불러오는 중입니다.',
+  presentationStyle: 'pageSheet',
+  preventAutomaticLimitedAccessAlertColor: '#182F80',
+  customLocalizedTitle: {
+    Recents: '최근 항목',
+    Screenshots: '스크린샷',
+    Selfies: '셀카',
+    Favorites: '즐겨찾기',
+  },
+};
 
 interface ImageInfo {
   exif?: null | any;
@@ -66,21 +73,21 @@ const ImageMultiPicker = () => {
     let tiffInfo: TIFFInfo | undefined;
 
     if (isIOS) {
-      gpsInfo = isAvailable(image.exif?.['{GPS}'])
+      gpsInfo = isAvailable(image.exif?.gps)
         ? {
-            latitude: image.exif['{GPS}'].Latitude,
-            longitude: image.exif['{GPS}'].Longitude,
-            altitude: image.exif['{GPS}'].Altitude,
-            accuracy: image.exif['{GPS}'].HPPositioningError,
+            latitude: image.exif.gps.Latitude,
+            longitude: image.exif.gps.Longitude,
+            altitude: image.exif.gps.Altitude,
+            accuracy: image.exif.gps.HPPositioningError,
           }
         : undefined;
 
-      tiffInfo = isAvailable(image.exif?.['{TIFF}'])
+      tiffInfo = isAvailable(image.exif)
         ? {
-            Make: image.exif['{TIFF}'].Make,
-            Model: image.exif['{TIFF}'].Model,
-            Software: image.exif['{TIFF}'].Software,
-            DateTime: image.exif['{TIFF}'].DateTime,
+            Make: image.exif.Make.value[0],
+            Model: image.exif.Model.value[0],
+            Software: image.exif.Software.value[0],
+            DateTime: image.exif.DateTime.value[0],
           }
         : undefined;
     } else {
@@ -108,7 +115,7 @@ const ImageMultiPicker = () => {
       gps: gpsInfo,
       tiff: tiffInfo,
       creationDate: isIOS ? image.creationDate : image.exif?.DateTime,
-      filename: isIOS ? image.filename : image.path.split('/').pop(),
+      filename: isIOS ? image.fileName : image.path.split('/').pop(),
       localIdentifier: isIOS ? image.localIdentifier : undefined,
       sourceURL: isIOS ? image.sourceURL : undefined,
     };
@@ -145,29 +152,37 @@ const ImageMultiPicker = () => {
     );
     if (!libraryPermission) return;
 
-    // try {
-    //   const tempImages = await MultipleImagePicker.openPicker(COMMON_OPTIONS);
-    //   console.log('tempImages: ', tempImages);
-    //
-    //   const tags = await getImageExif({ imagePath: tempImages.path });
-    //   console.log('tags: ', tags.gps);
-    //   await requestUploadImage({
-    //     uri: tempImages.path,
-    //     type: tempImages.type,
-    //   });
-    //
-    //   const imagesArray: ImageInfo[] = Array.isArray(tempImages)
-    //     ? tempImages
-    //     : [tempImages];
-    //   const parsedImages = imagesArray.map((image) =>
-    //     createImageObject(image, isIOS),
-    //   );
-    //
-    //   setSelectedImages(parsedImages);
-    // } catch (e: any) {
-    //   console.log('handleImageLibrary: ', e);
-    //   handleError(e);
-    // }
+    try {
+      const pickedImages = await MultipleImagePicker.openPicker(COMMON_OPTIONS);
+
+      const editGPSImages: ImageInfo[] = await Promise.all(
+        pickedImages.map(async (image: ImageInfo) => {
+          const tags = await getImageExif({ imagePath: image.path });
+          image = { ...image, exif: { ...tags.exif, gps: { ...tags.gps } } };
+          return image;
+        }),
+      );
+
+      const uploadImages = editGPSImages.map(async (image) => {
+        await requestUploadImage({
+          uri: image.path,
+          type: image.type,
+        });
+      });
+      await Promise.all(uploadImages);
+
+      const imagesArray: ImageInfo[] = Array.isArray(editGPSImages)
+        ? editGPSImages
+        : [editGPSImages];
+      const parsedImages = imagesArray.map((image) =>
+        createImageObject(image, isIOS),
+      );
+
+      setSelectedImages(parsedImages);
+    } catch (e: any) {
+      console.log('handleImageLibrary: ', e);
+      handleError(e);
+    }
   };
 
   return (
