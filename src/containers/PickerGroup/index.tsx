@@ -23,7 +23,8 @@ function PickerGroup() {
             backgroundColor: 'lightgreen',
           }}
           buttonClick={() => {
-            navigateScreenTo('ImageCropPicker');
+            Alert.alert('라이브러리가 존재하지 않습니다..');
+            // navigateScreenTo('ImageCropPicker');
           }}
         />
         <CommonButton
@@ -32,8 +33,8 @@ function PickerGroup() {
             backgroundColor: 'lightpink',
           }}
           buttonClick={() => {
-            Alert.alert('라이브러리가 존재하지 않습니다..');
-            // navigateScreenTo('ImageMultiPicker');
+            // Alert.alert('라이브러리가 존재하지 않습니다..');
+            navigateScreenTo('ImageMultiPicker');
           }}
         />
         <CommonButton
