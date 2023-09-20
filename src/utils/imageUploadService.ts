@@ -1,9 +1,19 @@
 import axios from 'axios';
 import RNFetchBlob from 'react-native-blob-util';
 
-export async function getRequestPreSignedUrl() {
+interface ImageFileInfo {
+  uri: string;
+  type: string;
+  mimeType?: string;
+}
+
+export async function getRequestPreSignedUrl({
+  mimeType,
+}: {
+  mimeType: string;
+}) {
   const requestBody = {
-    mimeType: 'image/jpeg',
+    mimeType,
   };
 
   const token =''
@@ -17,8 +27,8 @@ export async function getRequestPreSignedUrl() {
 }
 
 export async function uploadFileService(payload: {
-  preSignedUrl: any;
-  fileInfo: any;
+  preSignedUrl: string;
+  fileInfo: ImageFileInfo;
 }) {
   const { preSignedUrl, fileInfo } = payload;
   console.log('preSignedUrl', preSignedUrl.split('?')[0]);
@@ -43,9 +53,13 @@ export async function uploadFileService(payload: {
     });
 }
 
-export async function requestUploadImage(file: any) {
+export async function requestUploadImage(file: ImageFileInfo) {
   try {
-    const response = await getRequestPreSignedUrl();
+    const response = await getRequestPreSignedUrl({
+      mimeType: file.mimeType?.includes('heic')
+        ? 'image/jpeg'
+        : file.mimeType || 'image/jpeg',
+    });
     const presignedUrl = response.data.data.preSignedUrl;
     await uploadFileService({
       preSignedUrl: presignedUrl,
