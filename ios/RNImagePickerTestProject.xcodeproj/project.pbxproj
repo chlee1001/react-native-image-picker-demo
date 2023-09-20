@@ -12,6 +12,8 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		936375392AB97A1700707E7B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 936375382AB97A1700707E7B /* LaunchScreen.storyboard */; };
+		93EEFA212ABA744E00C8286E /* ImageConverterBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 93EEFA202ABA744E00C8286E /* ImageConverterBridge.m */; };
+		93EEFA242ABA745D00C8286E /* ImageConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93EEFA232ABA745D00C8286E /* ImageConverter.swift */; };
 		C2630456E684E7234755B35C /* libPods-RNImagePickerTestProject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 83748899467570D64BBCAE18 /* libPods-RNImagePickerTestProject.a */; };
 		ED15360E23346BEC41C4EA07 /* libPods-RNImagePickerTestProject-RNImagePickerTestProjectTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C56FA0DB05AB14576F92A1B /* libPods-RNImagePickerTestProject-RNImagePickerTestProjectTests.a */; };
 /* End PBXBuildFile section */
@@ -40,6 +42,9 @@
 		4C56FA0DB05AB14576F92A1B /* libPods-RNImagePickerTestProject-RNImagePickerTestProjectTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RNImagePickerTestProject-RNImagePickerTestProjectTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		83748899467570D64BBCAE18 /* libPods-RNImagePickerTestProject.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RNImagePickerTestProject.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		936375382AB97A1700707E7B /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = RNImagePickerTestProject/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		93EEFA202ABA744E00C8286E /* ImageConverterBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ImageConverterBridge.m; sourceTree = "<group>"; };
+		93EEFA232ABA745D00C8286E /* ImageConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageConverter.swift; sourceTree = "<group>"; };
+		93EEFA252ABA768700C8286E /* RNImagePickerTestProject-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RNImagePickerTestProject-Bridging-Header.h"; sourceTree = "<group>"; };
 		CE3EC1DE4D87FEEEBA69622A /* Pods-RNImagePickerTestProject.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNImagePickerTestProject.release.xcconfig"; path = "Target Support Files/Pods-RNImagePickerTestProject/Pods-RNImagePickerTestProject.release.xcconfig"; sourceTree = "<group>"; };
 		DC5212282AB6A7BC00DD6441 /* MaterialIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MaterialIcons.ttf; sourceTree = "<group>"; };
 		DC5212292AB6A7BC00DD6441 /* Ionicons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Ionicons.ttf; sourceTree = "<group>"; };
@@ -88,6 +93,7 @@
 		13B07FAE1A68108700A75B9A /* RNImagePickerTestProject */ = {
 			isa = PBXGroup;
 			children = (
+				93EEFA1F2ABA742300C8286E /* Modules */,
 				DCA13BA22AB6A02E00141508 /* Fonts */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
@@ -138,6 +144,16 @@
 				00E356EE1AD99517003FC87E /* RNImagePickerTestProjectTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		93EEFA1F2ABA742300C8286E /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+				93EEFA232ABA745D00C8286E /* ImageConverter.swift */,
+				93EEFA202ABA744E00C8286E /* ImageConverterBridge.m */,
+				93EEFA252ABA768700C8286E /* RNImagePickerTestProject-Bridging-Header.h */,
+			);
+			path = Modules;
 			sourceTree = "<group>";
 		};
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
@@ -219,7 +235,7 @@
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 1430;
 					};
 				};
 			};
@@ -426,6 +442,8 @@
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				93EEFA242ABA745D00C8286E /* ImageConverter.swift in Sources */,
+				93EEFA212ABA744E00C8286E /* ImageConverterBridge.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -444,6 +462,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 2093A34B16E7D6AE8AA31EE9 /* Pods-RNImagePickerTestProject-RNImagePickerTestProjectTests.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -471,6 +490,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = F7BEF35B53745BD283332EF0 /* Pods-RNImagePickerTestProject-RNImagePickerTestProjectTests.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
 				INFOPLIST_FILE = RNImagePickerTestProjectTests/Info.plist;
@@ -513,6 +533,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = RNImagePickerTestProject;
+				SWIFT_OBJC_BRIDGING_HEADER = "Modules/RNImagePickerTestProject-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -540,6 +561,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = RNImagePickerTestProject;
+				SWIFT_OBJC_BRIDGING_HEADER = "Modules/RNImagePickerTestProject-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
