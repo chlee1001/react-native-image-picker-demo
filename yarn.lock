@@ -1153,7 +1153,7 @@
     "@babel/helper-validator-identifier" "^7.22.19"
     to-fast-properties "^2.0.0"
 
-"@baronha/react-native-multiple-image-picker@^1.1.0":
+"@baronha/react-native-multiple-image-picker@1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@baronha/react-native-multiple-image-picker/-/react-native-multiple-image-picker-1.1.0.tgz#46c5b7a9a6656a36470ab15354610115a98f8713"
   integrity sha512-Zj+r449w/Bnc4ub/AyvYflHzHyjgg1c/Bv/N09A4ybUo3vtRbTGUPe3xNj5UxIO6rGww5VoKCOY6M3Cgvg2PKA==
