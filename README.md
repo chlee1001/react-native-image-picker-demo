@@ -99,6 +99,14 @@ RN 프로젝트에서 이미지 피커로 사용하는 여러가지 라이브러
     - @baronha/react-native-multiple-image-picker + 커스텀 패치
       - crop 기능 사용 안할 예정
     - 커스텀 모듈 (heic -> jpeg 변환)
+- 스크린샷
+- 
+  | [android]                                                                                                                           | ![android]                                                                                                                     |
+  |-------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
+  | <img width="50%" src="https://github.com/chlee1001/react-native-image-picker-demo/blob/main/screenshots/android_1.jpg?raw=true" />  | <img width="50%" src="https://github.com/chlee1001/react-native-image-picker-demo/blob/main/screenshots/iOS_1.PNG?raw=true" /> |
+  | <img width="50%" src="https://github.com/chlee1001/react-native-image-picker-demo/blob/main/screenshots/android_3.jpg?raw=true" />  | <img width="50%" src="https://github.com/chlee1001/react-native-image-picker-demo/blob/main/screenshots/iOS_2.PNG?raw=true" /> |
+  | <img width="50%" src="https://github.com/chlee1001/react-native-image-picker-demo/blob/main/screenshots/android_2.jpeg?raw=true" /> | <img width="50%" src="https://github.com/chlee1001/react-native-image-picker-demo/blob/main/screenshots/iOS_3.PNG?raw=true" /> |
+  | <img width="50%" src="https://github.com/chlee1001/react-native-image-picker-demo/blob/main/screenshots/android_4.png?raw=true" />  | <img width="50%" src="https://github.com/chlee1001/react-native-image-picker-demo/blob/main/screenshots/iOS_4.png?raw=true" /> |
 
 ## 🛠 설치 방법
 
