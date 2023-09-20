@@ -1,3 +1,67 @@
+diff --git a/node_modules/@baronha/react-native-multiple-image-picker/android/src/main/java/com/reactnativemultipleimagepicker/MultipleImagePickerModule.kt b/node_modules/@baronha/react-native-multiple-image-picker/android/src/main/java/com/reactnativemultipleimagepicker/MultipleImagePickerModule.kt
+index 4df80bd..e08065b 100644
+--- a/node_modules/@baronha/react-native-multiple-image-picker/android/src/main/java/com/reactnativemultipleimagepicker/MultipleImagePickerModule.kt
++++ b/node_modules/@baronha/react-native-multiple-image-picker/android/src/main/java/com/reactnativemultipleimagepicker/MultipleImagePickerModule.kt
+@@ -58,6 +58,7 @@ class MultipleImagePickerModule(reactContext: ReactApplicationContext) :
+ 
+         // set config
+         setConfiguration(options)
++        println("options: $options")
+ 
+         PictureSelector.create(activity)
+             .openGallery(if (mediaType == "video") SelectMimeType.ofVideo() else if (mediaType == "image") SelectMimeType.ofImage() else SelectMimeType.ofAll())
+@@ -178,13 +179,10 @@ class MultipleImagePickerModule(reactContext: ReactApplicationContext) :
+ 
+         // BOTTOM BAR
+         val bottomBar = BottomNavBarStyle()
+-        bottomBar.bottomPreviewNormalTextColor =
+-            ContextCompat.getColor(appContext, R.color.app_color_pri)
+-        bottomBar.bottomPreviewSelectTextColor =
+-            ContextCompat.getColor(appContext, R.color.app_color_pri)
++        bottomBar.bottomPreviewSelectTextColor = primaryColor
+         bottomBar.bottomNarBarBackgroundColor =
+             ContextCompat.getColor(appContext, R.color.ps_color_white)
+-        bottomBar.bottomSelectNumResources = R.drawable.num_oval_orange
++        bottomBar.bottomSelectNumResources = R.drawable.num_oval_custom
+         bottomBar.bottomEditorTextColor =
+             ContextCompat.getColor(appContext, R.color.ps_color_53575e)
+         bottomBar.bottomOriginalTextColor =
+@@ -366,5 +364,4 @@ class MultipleImagePickerModule(reactContext: ReactApplicationContext) :
+     override fun getPictureSelectorEngine(): PictureSelectorEngine {
+         return PictureSelectorEngineImp()
+     }
+-
+ }
+diff --git a/node_modules/@baronha/react-native-multiple-image-picker/android/src/main/res/drawable/num_oval_custom.xml b/node_modules/@baronha/react-native-multiple-image-picker/android/src/main/res/drawable/num_oval_custom.xml
+new file mode 100644
+index 0000000..ea68e24
+--- /dev/null
++++ b/node_modules/@baronha/react-native-multiple-image-picker/android/src/main/res/drawable/num_oval_custom.xml
+@@ -0,0 +1,13 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android"
++    android:shape="oval"
++    android:useLevel="false">
++
++    <solid android:color="#182F80" />
++    <stroke
++        android:width="1.5dp"
++        android:color="@color/app_color_white" />
++    <size
++        android:width="24dp"
++        android:height="24dp" />
++</shape>
+diff --git a/node_modules/@baronha/react-native-multiple-image-picker/android/src/main/res/drawable/picture_selector.xml b/node_modules/@baronha/react-native-multiple-image-picker/android/src/main/res/drawable/picture_selector.xml
+index 37c4719..205ebe0 100644
+--- a/node_modules/@baronha/react-native-multiple-image-picker/android/src/main/res/drawable/picture_selector.xml
++++ b/node_modules/@baronha/react-native-multiple-image-picker/android/src/main/res/drawable/picture_selector.xml
+@@ -1,5 +1,5 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <selector android:id="@+id/picture_selector" xmlns:android="http://schemas.android.com/apk/res/android">
+-  <item android:drawable="@drawable/num_oval_orange" android:state_selected="true" />
++  <item android:drawable="@drawable/num_oval_custom" android:state_selected="true" />
+   <item android:drawable="@drawable/picture_not_selected" android:state_selected="false" />
+ </selector>
 diff --git a/node_modules/@baronha/react-native-multiple-image-picker/ios/CustomPhotoPicker/CustomPhotoPickerViewController.swift b/node_modules/@baronha/react-native-multiple-image-picker/ios/CustomPhotoPicker/CustomPhotoPickerViewController.swift
 index d7c5998..abe2cc3 100644
 --- a/node_modules/@baronha/react-native-multiple-image-picker/ios/CustomPhotoPicker/CustomPhotoPickerViewController.swift
@@ -24,7 +88,7 @@ index 6eb8f21..4265365 100644
 +
  @end
 diff --git a/node_modules/@baronha/react-native-multiple-image-picker/ios/MultipleImagePicker.swift b/node_modules/@baronha/react-native-multiple-image-picker/ios/MultipleImagePicker.swift
-index 7ea113e..dfe6446 100644
+index 7ea113e..cee9245 100644
 --- a/node_modules/@baronha/react-native-multiple-image-picker/ios/MultipleImagePicker.swift
 +++ b/node_modules/@baronha/react-native-multiple-image-picker/ios/MultipleImagePicker.swift
 @@ -5,6 +5,7 @@ import UIKit
@@ -50,16 +114,16 @@ index 7ea113e..dfe6446 100644
  
  var config = TLPhotosPickerConfigure()
 @@ -63,7 +71,7 @@ class MultipleImagePicker: NSObject, TLPhotosPickerViewControllerDelegate, UINav
- 
+     
          DispatchQueue.main.async {
              viewController.modalTransitionStyle = .coverVertical
 -            viewController.modalPresentationStyle = .fullScreen
 +            viewController.modalPresentationStyle = uiModalPresentationStyleConverter(style: self.options["presentationStyle"] as! String)
- 
+             
              self.getTopMostViewController()?.present(viewController, animated: true, completion: nil)
          }
 @@ -90,6 +98,7 @@ class MultipleImagePicker: NSObject, TLPhotosPickerViewControllerDelegate, UINav
- 
+         
          // config options
          config.tapHereToChange = self.options["tapHereToChange"] as! String
 +        config.customLocalizedTitle = self.options["customLocalizedTitle"] as! [String : String];
@@ -68,13 +132,13 @@ index 7ea113e..dfe6446 100644
          config.doneTitle = self.options["doneTitle"] as! String
 @@ -120,7 +129,9 @@ class MultipleImagePicker: NSObject, TLPhotosPickerViewControllerDelegate, UINav
          config.nibSet = (nibName: "Cell", bundle: MultipleImagePickerBundle.bundle())
- 
+         
          config.allowedPhotograph = self.options["allowedPhotograph"] as! Bool
 -        //        configure.preventAutomaticLimitedAccessAlert = self.options["preventAutomaticLimitedAccessAlert"]
 +
 +        config.preventAutomaticLimitedAccessAlert = self.options["preventAutomaticLimitedAccessAlert"] as! Bool;
 +        config.preventAutomaticLimitedAccessAlertColor = UIColor(hex: self.options["preventAutomaticLimitedAccessAlertColor"] as! String)
- 
+         
          if options["selectedAssets"] != nil {
              self.handleSelectedAssets(selectedList: options["selectedAssets"] as! NSArray)
 @@ -151,6 +162,12 @@ class MultipleImagePicker: NSObject, TLPhotosPickerViewControllerDelegate, UINav
@@ -87,13 +151,13 @@ index 7ea113e..dfe6446 100644
 +    func handleNoCameraPermissions(picker: TLPhotosPickerViewController) {
 +        self.reject("NO_CAMERA_PERMISSION", "Camera Permission is Denied.", nil)
 +    }
- 
+     
      internal func dismissLoading() {
          if let vc = self.getTopMostViewController()?.presentedViewController, vc is UIAlertController {
 @@ -158,7 +175,7 @@ class MultipleImagePicker: NSObject, TLPhotosPickerViewControllerDelegate, UINav
          }
      }
- 
+     
 -    func dismissComplete() {
 +    @objc func dismissComplete(){
          DispatchQueue.main.async {
@@ -101,13 +165,13 @@ index 7ea113e..dfe6446 100644
          }
 @@ -222,7 +239,7 @@ class MultipleImagePicker: NSObject, TLPhotosPickerViewControllerDelegate, UINav
          let selections = NSMutableArray(array: withTLPHAssets)
- 
+         
          // add loading view
 -        let alert = UIAlertController(title: nil, message: "Please wait...", preferredStyle: .alert)
 +        let alert = UIAlertController(title: nil, message: self.options["waitMessage"] as? String, preferredStyle: .alert)
- 
+         
          alert.showLoading()
- 
+         
 @@ -277,6 +294,36 @@ class MultipleImagePicker: NSObject, TLPhotosPickerViewControllerDelegate, UINav
      }
  }
@@ -151,11 +215,11 @@ index 7ea113e..dfe6446 100644
              cropViewController.dismiss(animated: true) {
 -                let alert = UIAlertController(title: nil, message: "Please wait...", preferredStyle: .alert)
 +                let alert = UIAlertController(title: nil, message: self.options["waitMessage"] as? String, preferredStyle: .alert)
- 
+                         
                  alert.showLoading()
  
 diff --git a/node_modules/@baronha/react-native-multiple-image-picker/lib/module/index.js b/node_modules/@baronha/react-native-multiple-image-picker/lib/module/index.js
-index a780a42..32c2ba8 100644
+index a780a42..dd154ca 100644
 --- a/node_modules/@baronha/react-native-multiple-image-picker/lib/module/index.js
 +++ b/node_modules/@baronha/react-native-multiple-image-picker/lib/module/index.js
 @@ -18,6 +18,7 @@ let defaultOptions = {
@@ -178,7 +242,7 @@ index a780a42..32c2ba8 100644
    //**Android**//
    //****//
 diff --git a/node_modules/@baronha/react-native-multiple-image-picker/src/index.d.ts b/node_modules/@baronha/react-native-multiple-image-picker/src/index.d.ts
-index f8ec0d3..5837cd2 100644
+index f8ec0d3..04df1a4 100644
 --- a/node_modules/@baronha/react-native-multiple-image-picker/src/index.d.ts
 +++ b/node_modules/@baronha/react-native-multiple-image-picker/src/index.d.ts
 @@ -59,10 +59,9 @@ export type Options<T extends MediaType = MediaType.ALL> = {
@@ -204,10 +268,22 @@ index f8ec0d3..5837cd2 100644
  };
  
  export interface SinglePickerOptions {
-@@ -100,6 +103,7 @@ type MultipleImagePickerType = {
-   openPicker<T extends MediaType = MediaType.ALL>(
-     options: SinglePickerOptions & MediaTypeOptions[T] & Options<T>
-   ): Promise<MediaTypeResults[T]>;
+@@ -93,13 +96,13 @@ interface MediaTypeResults {
+   [MediaType.ALL]: ImageResults | VideoResults;
+ }
+ 
+-type MultipleImagePickerType = {
+-  openPicker<T extends MediaType = MediaType.ALL>(
++export type openPicker = <T extends MediaType = MediaType.ALL>(
+     options: MultiPickerOptions & MediaTypeOptions[T] & Options<T>
+-  ): Promise<MediaTypeResults[T][]>;
+-  openPicker<T extends MediaType = MediaType.ALL>(
+-    options: SinglePickerOptions & MediaTypeOptions[T] & Options<T>
+-  ): Promise<MediaTypeResults[T]>;
++) => Promise<MediaTypeResults[T][]>;
++
++type MultipleImagePickerType = {
++  openPicker: openPicker;
 +  dismissComplete(): Promise<void>;
  };
  
