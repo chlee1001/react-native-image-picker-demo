@@ -12,27 +12,30 @@ import ScreenTitle from '../../components/ScreenTitle';
 import ImageDetails from '../../components/ImageDetail';
 import { getImageExif } from '../../utils/imageHelper';
 import { requestUploadImage } from '../../utils/imageUploadService';
-import { isIOS } from '../../constants/common';
+import {isAndroid, isIOS} from '../../constants/common';
 import { convertImage } from '../../utils/nativeModulesHelper';
 
 const MAX_ASSET = 3;
 const COMMON_OPTIONS: Options<MediaType.IMAGE> = {
-  usedCameraButton: true,
+  mediaType: MediaType?.IMAGE || 'image',
+
+  // common
+  usedCameraButton: false,
   isPreview: true,
   numberOfColumn: 4,
-  maxSelectedAssets: 3,
-  allowedLivePhotos: true,
-  // custom
-  tapHereToChange: '앨범 변경',
+  maxSelectedAssets: MAX_ASSET,
+  maximumMessageTitle: '선택 불가',
+  maximumMessage: `파일은 최대 ${MAX_ASSET}개 까지 첨부가능합니다.`,
+  messageTitleButton: '확인',
   doneTitle: '완료',
   cancelTitle: '취소',
   selectMessage: '선택',
   deselectMessage: '선택 해제',
   selectedColor: '#182F80',
-  maximumMessageTitle: '선택 불가',
-  maximumMessage: `파일은 최대 ${MAX_ASSET}개 까지 첨부가능합니다.`,
-  messageTitleButton: '확인',
   waitMessage: '사진을 불러오는 중입니다.',
+  // iOS only
+  allowedLivePhotos: true,
+  tapHereToChange: '앨범 변경',
   presentationStyle: 'pageSheet',
   preventAutomaticLimitedAccessAlertColor: '#182F80',
   customLocalizedTitle: {
@@ -41,6 +44,8 @@ const COMMON_OPTIONS: Options<MediaType.IMAGE> = {
     Selfies: '셀카',
     Favorites: '즐겨찾기',
   },
+  // isCrop: true,
+  // singleSelectedMode: true,
 };
 
 interface ImageInfo {
@@ -73,43 +78,61 @@ const ImageMultiPicker = () => {
     let gpsInfo: GPSInfo | undefined;
     let tiffInfo: TIFFInfo | undefined;
 
-    if (isIOS) {
-      gpsInfo = isAvailable(image.exif.gps)
-        ? {
-            latitude: image.exif.gps?.Latitude,
-            longitude: image.exif.gps?.Longitude,
-            altitude: image.exif.gps?.Altitude,
-            accuracy: image.exif.gps?.HPPositioningError,
-          }
-        : undefined;
+    // if (isIOS) {
+    //   gpsInfo = isAvailable(image.exif.gps)
+    //     ? {
+    //         latitude: image.exif.gps?.Latitude,
+    //         longitude: image.exif.gps?.Longitude,
+    //         altitude: image.exif.gps?.Altitude,
+    //         accuracy: image.exif.gps?.HPPositioningError,
+    //       }
+    //     : undefined;
+    //
+    //   tiffInfo = isAvailable(image.exif.info)
+    //     ? {
+    //         Make: image.exif.info.Make,
+    //         Model: image.exif.info.Model,
+    //         Software: image.exif.info.Software,
+    //         DateTime: image.exif.info.DateTime,
+    //       }
+    //     : undefined;
+    // } else {
+    //   gpsInfo = isAvailable(image.exif?.latitude)
+    //     ? {
+    //         latitude: image.exif.latitude,
+    //         longitude: image.exif.longitude,
+    //         altitude: image.exif.altitude,
+    //         accuracy: -1, // 안드로이드에서 정확도 정보가 누락되면 -1을 할당
+    //       }
+    //     : undefined;
+    //
+    //   tiffInfo = isAvailable(image.exif)
+    //     ? {
+    //         Make: image.exif.Make,
+    //         Model: image.exif.Model,
+    //         Software: image.exif.Software,
+    //         DateTime: image.exif.DateTime,
+    //       }
+    //     : undefined;
+    // }
 
-      tiffInfo = isAvailable(image.exif.info)
-        ? {
-            Make: image.exif.info.Make,
-            Model: image.exif.info.Model,
-            Software: image.exif.info.Software,
-            DateTime: image.exif.info.DateTime,
-          }
-        : undefined;
-    } else {
-      gpsInfo = isAvailable(image.exif?.latitude)
-        ? {
-            latitude: image.exif.latitude,
-            longitude: image.exif.longitude,
-            altitude: image.exif.altitude,
-            accuracy: -1, // 안드로이드에서 정확도 정보가 누락되면 -1을 할당
-          }
-        : undefined;
+    gpsInfo = isAvailable(image.exif.gps)
+      ? {
+          latitude: image.exif.gps?.Latitude,
+          longitude: image.exif.gps?.Longitude,
+          altitude: image.exif.gps?.Altitude,
+          accuracy: image.exif.gps?.HPPositioningError,
+        }
+      : undefined;
 
-      tiffInfo = isAvailable(image.exif)
-        ? {
-            Make: image.exif.Make,
-            Model: image.exif.Model,
-            Software: image.exif.Software,
-            DateTime: image.exif.DateTime,
-          }
-        : undefined;
-    }
+    tiffInfo = isAvailable(image.exif.info)
+      ? {
+          Make: image.exif.info?.Make,
+          Model: image.exif.info?.Model,
+          Software: image.exif.info?.Software,
+          DateTime: image.exif.info?.DateTime,
+        }
+      : undefined;
 
     return {
       ...image,
@@ -163,13 +186,13 @@ const ImageMultiPicker = () => {
           image = {
             ...image,
             exif: {
-              ...tags.exif,
-              gps: { ...tags.gps },
+              ...tags?.exif,
+              gps: { ...tags?.gps },
               info: {
-                Make: tags.exif.Make?.value[0],
-                Model: tags.exif.Model?.value[0],
-                Software: tags.exif.Software?.value[0],
-                DateTime: tags.exif.DateTime?.value[0],
+                Make: tags?.exif?.Make?.value[0],
+                Model: tags?.exif?.Model?.value[0],
+                Software: tags?.exif?.Software?.value[0],
+                DateTime: tags?.exif?.DateTime?.value[0],
               },
             },
           };
@@ -187,7 +210,9 @@ const ImageMultiPicker = () => {
       // 이미지 업로드
       const convertedImages = await Promise.all(
         pickedImages.map(async (image: ImageInfo) => {
-          const convertedImagePath = await convertImage(image.path);
+          const convertedImagePath = await convertImage(
+            isAndroid ? image.realPath : image.path,
+          );
           return { ...image, path: convertedImagePath };
         }),
       );
