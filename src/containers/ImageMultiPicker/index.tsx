@@ -13,6 +13,7 @@ import ImageDetails from '../../components/ImageDetail';
 import { getImageExif } from '../../utils/imageHelper';
 import { requestUploadImage } from '../../utils/imageUploadService';
 import { isIOS } from '../../constants/common';
+import { convertImage } from '../../utils/nativeModulesHelper';
 
 const MAX_ASSET = 3;
 const COMMON_OPTIONS: Options<MediaType.IMAGE> = {
@@ -73,21 +74,21 @@ const ImageMultiPicker = () => {
     let tiffInfo: TIFFInfo | undefined;
 
     if (isIOS) {
-      gpsInfo = isAvailable(image.exif?.gps)
+      gpsInfo = isAvailable(image.exif.gps)
         ? {
-            latitude: image.exif.gps.Latitude,
-            longitude: image.exif.gps.Longitude,
-            altitude: image.exif.gps.Altitude,
-            accuracy: image.exif.gps.HPPositioningError,
+            latitude: image.exif.gps?.Latitude,
+            longitude: image.exif.gps?.Longitude,
+            altitude: image.exif.gps?.Altitude,
+            accuracy: image.exif.gps?.HPPositioningError,
           }
         : undefined;
 
-      tiffInfo = isAvailable(image.exif)
+      tiffInfo = isAvailable(image.exif.info)
         ? {
-            Make: image.exif.Make.value[0],
-            Model: image.exif.Model.value[0],
-            Software: image.exif.Software.value[0],
-            DateTime: image.exif.DateTime.value[0],
+            Make: image.exif.info.Make,
+            Model: image.exif.info.Model,
+            Software: image.exif.info.Software,
+            DateTime: image.exif.info.DateTime,
           }
         : undefined;
     } else {
@@ -155,30 +156,49 @@ const ImageMultiPicker = () => {
     try {
       const pickedImages = await MultipleImagePicker.openPicker(COMMON_OPTIONS);
 
+      // 정보 출력용
       const editGPSImages: ImageInfo[] = await Promise.all(
         pickedImages.map(async (image: ImageInfo) => {
           const tags = await getImageExif({ imagePath: image.path });
-          image = { ...image, exif: { ...tags.exif, gps: { ...tags.gps } } };
+          image = {
+            ...image,
+            exif: {
+              ...tags.exif,
+              gps: { ...tags.gps },
+              info: {
+                Make: tags.exif.Make?.value[0],
+                Model: tags.exif.Model?.value[0],
+                Software: tags.exif.Software?.value[0],
+                DateTime: tags.exif.DateTime?.value[0],
+              },
+            },
+          };
           return image;
         }),
       );
-
-      const uploadImages = editGPSImages.map(async (image) => {
-        await requestUploadImage({
-          uri: image.path,
-          type: image.type,
-        });
-      });
-      await Promise.all(uploadImages);
-
       const imagesArray: ImageInfo[] = Array.isArray(editGPSImages)
         ? editGPSImages
         : [editGPSImages];
       const parsedImages = imagesArray.map((image) =>
         createImageObject(image, isIOS),
       );
-
       setSelectedImages(parsedImages);
+
+      // 이미지 업로드
+      const convertedImages = await Promise.all(
+        pickedImages.map(async (image: ImageInfo) => {
+          const convertedImagePath = await convertImage(image.path);
+          return { ...image, path: convertedImagePath };
+        }),
+      );
+      const uploadImages = convertedImages.map(async (image: ImageInfo) => {
+        await requestUploadImage({
+          uri: image.path,
+          type: image.type,
+          mimeType: image.mime,
+        });
+      });
+      await Promise.all(uploadImages);
     } catch (e: any) {
       console.log('handleImageLibrary: ', e);
       handleError(e);
